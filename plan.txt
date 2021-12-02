@@ -1,0 +1,10 @@
+
+// oluşturulacak Fonksiyonlar
+Foto yükle
+Takip isteği at
+Bu verileri DB den aldır
+JOB a bağla
+
+// Hamleler
+GT sayfalarındaki insanlara istek at
+İnsan topladıktan sonra postlar atmaya başla
