@@ -8,3 +8,29 @@ JOB a bağla
 // Hamleler
 GT sayfalarındaki insanlara istek at
 İnsan topladıktan sonra postlar atmaya başla
+
+// JOBs
+00 Sayfalardan Post çek
+10 kullanıcı takip sil
+20 Post yükle
+30 Sayfalardan Kullanıcı çek
+45 kullanıcı takip at
+
+
+// Tablolar
+post_page 
+    id
+    page_id
+    last_post_id / date
+post
+    id
+    path
+    caption
+user_page # max 10 sayfa
+    id
+    page_id
+    last_post_id / date
+user # her sayfa için max 5 kişi
+    id
+    user_id
+
