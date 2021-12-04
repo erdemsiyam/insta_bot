@@ -105,6 +105,7 @@ Requestler [
 	
 	// Foto indir
 	// Foto yükle
+	bot.upload_photo(photo='C:/Users/Erdem/Desktop/dene.png', caption='denemedir')
 	
 	// Video indir
 	// Video yükle
