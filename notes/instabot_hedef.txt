@@ -1,0 +1,69 @@
+Giriş Bilgisi [
+	can_sun17@wisndowslive.com
+	lordkont81
+
+	loudwhisper666
+	lordkont81
+
+	telefon_cikra
+	lordkont81
+	
+]
+Hedef [
+	- login olma
+	- post çek
+	- post at
+	- post çek at otomatikleştirme
+	- kişi takip et
+	- kişi takip çık
+	- kişi takip et çık otomatikleştirme
+	- hikaye çek
+	- hikaye at
+	- hikaye çek at otomatikleştirme
+]
+
+
+// Standart Fonksiyonlar
+Bir sayfanın son postu indir
+Post yükle
+Postu beğenenleri çek follow at
+Follow sil
+
+// İleri Fonksiyonlar
+Postlar DB at
+Postlar DBden al
+Kullanıcı DB at
+Kullanıcı DB al
+JOB a bağla
+
+
+// JOBs
+00 Sayfalardan Post çek
+10 kullanıcı takip sil
+20 Post yükle
+30 Sayfalardan Kullanıcı çek
+45 kullanıcı takip at
+
+
+// Tablolar
+post_page 
+    id
+    page_id
+    last_post_id / date
+post
+    id
+    path
+    caption
+user_page # max 10 sayfa
+    id
+    page_id
+    last_post_id / date
+user # her sayfa için max 5 kişi
+    id
+    user_id
+
+
+/////////////// YENİ
+// Fonksiyon
+
+
