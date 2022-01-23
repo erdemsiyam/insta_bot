@@ -28,35 +28,21 @@
 
 
 #####################################################
-from mongoengine import *
-from model.mongo_model import *
-from service.insta_service import *
+
+
+from controller.my_controller import MyController
 from util import *
+import logging
+import sys
 
-def get_posts():
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
 
-    # Tüm post sayfaları çekilir
-    post_pages = PostPage.objects
-
-    for pp in post_pages:
-
-        insta_post = get_post_by_username(pp.name)
-
-        if insta_post.datetime_int > pp.last_post_date:
-            pp.last_post_date = insta_post.datetime_int
-            pp.save()
-        else:
-            continue
-        
-        post = Post()
-        post.post_page = pp
-        post.caption = insta_post.caption
-        post.paths = download_photos(
-            username=pp.name,
-            file_name=str(insta_post.datetime_int),
-            urls=insta_post.urls)
-        
-        post.save()
-
-get_posts()
- 
+# MAIN
+my_controller = MyController(username=USERNAME,password=PASSWORD)
+my_controller.login()
