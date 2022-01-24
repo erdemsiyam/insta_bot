@@ -171,5 +171,117 @@ class InstaService:
         
 
 
-    def follow_by_username(username:str,follow_count:int):
-        pass
+    def follow_by_username(self,username:str,follow_count:int):
+        
+        # Takip Sayfası Açılır
+        self.driver.get('https://www.instagram.com/'+username)
+        time.sleep(2)
+        logging.info('instagram takip sayfası açıldı + "'+username+'"')
+        
+        # İlk Fotoğraf Açılır
+        first_image_small = self.driver.find_elements(By.CLASS_NAME, "_9AhH0")[0]
+        first_image_small.click()
+        time.sleep(2)
+        logging.info('instagram ilk post açıldı')
+        
+        # Beğeniler Butonu Tıklanır
+        btn_liked_count = self.driver.find_element(By.XPATH,"//section[@class='EDfFK ygqzn']//a[@class='zV_Nj']")
+        btn_liked_count.click()
+        time.sleep(2)
+        logging.info('instagram beğeniler butonu tıklandı')
+        
+        # Beğeni Listesi 4 Kez Aşağı Sürdürülür
+        scroll_down_script = """div1 = document.getElementsByClassName('             qF0y9          Igw0E     IwRSH      eGOV_        vwCYk                                                                            i0EQd                                   ');
+        div2 = div1[0].firstChild;
+        div2.scrollTo(div2.scrollHeight,div2.scrollHeight + 600);
+        return div2.scrollHeight;
+        """
+        scroll_height = 0
+        last_scroll_height = -1
+        followed_count = 0
+        while last_scroll_height < scroll_height:
+            
+            # Hedef Beğeni Sayısına Ulaşılırsa Metod Bitirilir
+            if followed_count == follow_count:
+                logging.info('instagram toplam '+str(follow_count)+' takip sayısına ulaşıldı')
+                break
+            
+            # Takip Et Butonu Yok İse, ScrollDown Yapılır
+            buttons_follow = self.driver.find_elements(By.XPATH,"//div[@class='             qF0y9          Igw0E   rBNOH        eGOV_     ybXk5    _4EzTm                                                                                   XfCBB          HVWg4                 ']//button[@class='sqdOP  L3NKy   y3zKF     ']")
+            if len(buttons_follow) == 0:
+                last_scroll_height = scroll_height
+                scroll_height = self.driver.execute_script(scroll_down_script)
+                time.sleep(2)
+                logging.info('instagram ilk listeler takip edildiği için, scrolldown yapıldı')
+            
+            # Takip Et Butonları Basılır
+            for button in buttons_follow:
+                
+                # Hedef Beğeni Sayısına Ulaşılırsa Metod Bitirilir
+                if followed_count == follow_count:
+                    logging.info('instagram toplam '+str(follow_count)+' takip sayısına ulaşıldı')
+                    last_scroll_height = scroll_height # Tekrar While Yapmaması İçin eklendi
+                    break
+                
+                # Takip Et Tıklanır
+                button.click()
+                followed_count += 1
+                time.sleep(2)
+                logging.info('instagram '+str(followed_count)+'.kez takip et tıklanıldı')
+
+
+    def unfollow(self,username:str,unfollow_count:int=10):
+
+        # Kullanıcı Sayfası Açılır
+        self.driver.get('https://www.instagram.com/'+username)
+        time.sleep(2)
+        logging.info('instagram kullanıcımızın sayfası açıldı + "'+username+'"')
+        
+        # Takip Butonu Tıklanır
+        btn_followed_count = self.driver.find_element(By.XPATH,"//section[@class='wW3k-']//li[@class='Y8-fY '][3]//a[@class='-nal3 ']")
+        btn_followed_count.click()
+        time.sleep(10)
+        logging.info('instagram takip ettiklerimiz butonu tıklandı')
+        
+        # Takip Listesi 4 Kez Aşağı Sürdürülür
+        scroll_down_script = """div2 = document.getElementsByClassName('isgrP')[0];
+        div2.scrollTo(div2.scrollHeight,div2.scrollHeight + 600);
+        return div2.scrollHeight;
+        """
+        scroll_height = 0
+        last_scroll_height = -1
+        unfollowed_count = 0
+        while last_scroll_height < scroll_height:
+            
+            # Hedef Beğeni Sayısına Ulaşılırsa Metod Bitirilir
+            if unfollowed_count == unfollow_count:
+                logging.info('instagram toplam '+str(unfollow_count)+' takip silme sayısına ulaşıldı')
+                break
+            
+            # Takip Et Butonu Yok İse, ScrollDown Yapılır
+            buttons_unfollow = self.driver.find_elements(By.XPATH,"//div[@class='isgrP']//button[@class='sqdOP  L3NKy    _8A5w5    ']")
+            if len(buttons_unfollow) == 0:
+                last_scroll_height = scroll_height
+                scroll_height = self.driver.execute_script(scroll_down_script)
+                time.sleep(2)
+                logging.info('instagram ilk listeler takipten silindiği için, scrolldown yapıldı')
+            
+            # Takip Et Butonları Basılır
+            for button in buttons_unfollow:
+                
+                # Hedef Beğeni Sayısına Ulaşılırsa Metod Bitirilir
+                if unfollowed_count == unfollow_count:
+                    logging.info('instagram toplam '+str(unfollow_count)+' takip silme sayısına ulaşıldı')
+                    last_scroll_height = scroll_height # Tekrar While Yapmaması İçin eklendi
+                    break
+                
+                # Takip Et Tıklanır
+                button.click()
+                time.sleep(1)
+                button_unfollow_confirm = self.driver.find_element(By.XPATH,"//div[@class='mt3GC']//button[@class='aOOlW -Cab_   ']")
+                button_unfollow_confirm.click()
+                unfollowed_count += 1
+                time.sleep(2)
+                logging.info('instagram '+str(unfollowed_count)+'.kez takip sil tıklanıldı')
+
+        

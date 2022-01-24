@@ -1,7 +1,7 @@
 from mongoengine import *
 from model.mongo_model import *
 from service.insta_service import *
-from util import download_photos
+from util import download_photos, get_timespan_now
 import logging
 import sys
 
@@ -21,14 +21,17 @@ class MyController():
     mongo_connection = None
     insta_service = None
 
+
     def __init__(self,username:str,password:str):
         self.username = username
         self.password = password
         self.mongo_connection = connect('insta')
         self.insta_service = InstaService()
 
+
     def login(self):
         self.insta_service.login(username=self.username,password=self.password)
+
 
     def get_posts(self):
 
@@ -93,26 +96,61 @@ class MyController():
         logging.info('mongo post yüklendi bilgisi kayıt edildi')
 
 
-    def delete_photos():
+    def delete_photos(self):
+
+        # Sahip Olunan Kullanıcı Sayıları Alınır
         my_pages_count = len(MyPage.objects)
+        logging.info('mongo sahip olduğumuz kullanıcı sayısı : '+str(my_pages_count))
 
+        # Post Kayıtları Alınır
         posts = Post.objects
+        logging.info('mongo sahip olduğumuz post sayısı : '+str(len(posts)))
 
+
+        # Hangi Post Tüm Kullanıcılar İçin Kullanılmışsa O Post Silinir
         for post in posts:
 
+            # Sıradaki Posttaki Kullanıcı Sayıları Sahip Olduğumuz Kullanıcı Sayısına Eşit Değilse Silme Geç
             if len(post.posted_pages) < my_pages_count:
+                logging.info('sıradaki post "'+str(post.timestamp)+'" silinmedi')
                 continue
             
+            # Posta Ait Fotoğrafları Diskten Sil
             for path in post.paths:
-                delete_file(file_path=path)
+                logging.info('sıradaki post "'+str(post.timestamp)+'" silindi')
+                self.insta_service.delete_file(file_path=path)
             
             post.delete()
 
-    def follow(follow_count:int=5):
-        my_page = MyPage.objects.filter(name=USERNAME)
 
-        next_follow_page = FollowPage.objects(id__in=my_page.follow_pages).order_by('timestamp').first()
-        follow_by_username(username=next_follow_page,follow_count=follow_count)
+    def follow(self,follow_count:int=5):
+
+        # Kullanıcımız Alınır
+        my_page = MyPage.objects.filter(name=self.username).first()
+        logging.info('mongo takip işlemi için "'+my_page.name+'" kullanıcısı alındı')
+
+        # Kullanıcımıza Ait Olanlardan En Eski Tarihli FolowPage Alınır
+        next_follow_page = FollowPage.objects(owner=my_page).order_by('timestamp').first()
+        if next_follow_page is None:
+            logging.info('mongo kullanıcı "'+my_page.name+'"" için takipçi sayfası bulunamadı')
+        logging.info('mongo sıradaki takipçi sayfamız : "'+next_follow_page.name+'"')
+
+        # FollowPagedeki Son Posttaki Beğenenlere Takip İstekleri Atılır
+        self.insta_service.follow_by_username(username=next_follow_page.name,follow_count=follow_count)
+        logging.info('takip işlemi bitti')
+        
+        # FollowPage Son Takip İşlemi Tarihi Kayıt Edilir
         next_follow_page.timestamp = get_timespan_now()
         next_follow_page.save()
-    follow()
+        logging.info('mongo takip tarihi kayıt edildi "'+next_follow_page.name+'" - "'+str(next_follow_page.timestamp)+'"')
+
+
+    def unfollow(self,unfollow_count:int=10):
+
+        # Kullanıcımız Alınır
+        my_page = MyPage.objects.filter(name=self.username).first()
+        logging.info('mongo takipten çıkma işlemi için "'+my_page.name+'" kullanıcısı alındı')
+
+        # Takip Ettiklerimiz Takipten Çıkarılır
+        self.insta_service.unfollow(username=self.username,unfollow_count=unfollow_count)
+        logging.info('takipten çıkma işlemi bitti')

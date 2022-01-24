@@ -1,13 +1,13 @@
 from mongoengine import *
 
-class FollowPage(Document):
-    name = StringField(required=True)
-    timestamp = LongField()
-
 class MyPage(Document):
     name = StringField(required=True)
     password = StringField(required=True)
-    follow_pages = ListField(ReferenceField(FollowPage))
+
+class FollowPage(Document):
+    name = StringField(required=True)
+    timestamp = LongField()
+    owner = ReferenceField(MyPage)
 
 class PostPage(Document):
     name = StringField(required=True)
@@ -31,4 +31,11 @@ class Post(Document):
 # MyPage Oluşturma
 #my_page = MyPage()
 #my_page.name = 'loudwhisper666'
+#my_page.password = 'x'
 #my_page.save()
+
+# FollowPage Oluşturma
+# follow_page = FollowPage()
+# follow_page.name = 'turkishdictionary'
+# follow_page.owner = MyPage.objects.filter(name="loudwhisper666").first()
+# follow_page.save()

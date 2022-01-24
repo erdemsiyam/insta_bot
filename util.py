@@ -13,7 +13,7 @@ def get_timespan(datetime_str:str) -> int:
     return int(str(timespan_flo).split('.')[0])
 
 def get_timespan_now() -> int:
-    time = datetime.datetime.now()
+    time = datetime.now()
     timespan_flo = datetime.timestamp(time)
     return int(str(timespan_flo).split('.')[0])
 # print(get_timespan('2022-01-07T16:01:55.000Z'))
