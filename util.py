@@ -31,9 +31,12 @@ def download_photos(username:str,file_name:str,urls:list)->list:
     for url in urls:
         counter += 1
         save_as = os.path.join(path,file_name+'-'+str(counter)+'.png')
-        wget.download(url, save_as)
-        paths.append(save_as)
-        logging.info(str(counter)+'. Foto indirildi : '+save_as)
+        if url is None:
+            logging.info('HATA!!! foto url None : '+save_as)
+        else:
+            wget.download(url, save_as)
+            paths.append(save_as)
+            logging.info(str(counter)+'. Foto indirildi : '+save_as)
 
     return paths
 

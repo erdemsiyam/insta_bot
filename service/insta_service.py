@@ -57,6 +57,7 @@ class InstaService:
         
         # Post Tarihi
         #upload_date = self.driver.find_element(By.XPATH,'/html/body/div[6]/div[2]/div/article/div/div[2]/div/div/div[2]/div[2]/a/time').get_attribute('datetime')
+        time.sleep(5)
         upload_date = self.driver.find_element(By.XPATH,'//time[@class="_1o9PC Nzb55"]').get_attribute('datetime')
         post.datetime_int = get_timespan(upload_date)
         logging.info('instagram post tarihi '+str(post.datetime_int))
@@ -95,8 +96,12 @@ class InstaService:
             if len(image_list) == 0:
                 image_list = self.driver.find_elements(By.XPATH,'//li[@class="Ckrof"]//img[@class="FFVAD"]')
                 logging.info('instagram bulunan foto sayısı B tip : '+str(len(image_list)))
-                #if len(image_list) == 0:
-                # TODO : Bu bir videodur
+                if len(image_list) == 0:
+                    image_list = self.driver.find_elements(By.XPATH,'//div[@class="_97aPb C2dOX  "]//img[@class="FFVAD"]')
+                    logging.info('instagram bulunan foto sayısı C tip : '+str(len(image_list)))
+                    if len(image_list) == 0:
+                        logging.info('instagram bu post video olabilir bulunan foto sayısı : '+str(len(image_list)))
+                        # TODO : Bu bir videodur
             
             # Foto Url Kaydet
             for image in image_list:
@@ -107,10 +112,17 @@ class InstaService:
                 try:
                     btn_right_image = self.driver.find_elements(By.XPATH,"//div[@class='EcJQs']//button[@class='  _6CZji   ']")[0]
                 except:
-                    time.sleep(2)
+                    time.sleep(4)
                     btn_right_image = self.driver.find_elements(By.XPATH,"//div[@class='EcJQs']//button[@class='  _6CZji   ']")[0]
                 btn_right_image.click()
-                time.sleep(2)
+                time.sleep(4)
+        
+        # Foto Urller None Olanlar Silinir
+        photo_list_temp = photo_list.copy()
+        photo_list.clear()
+        for val in photo_list_temp:
+            if val != None :
+                photo_list.append(val)
         
         # Foto Urller Distinct yapılır
         post.urls = list(dict.fromkeys(photo_list))

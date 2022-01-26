@@ -11,6 +11,8 @@ from controller.my_controller import MyController
 from util import *
 import logging
 import sys
+import schedule
+import time
 
 # Logging Config
 root = logging.getLogger()
@@ -24,3 +26,12 @@ root.addHandler(handler)
 # Main
 my_controller = MyController(username=USERNAME,password=PASSWORD)
 my_controller.login()
+# time.sleep(10)
+# my_controller.get_posts()
+schedule.every().hour.at("36:00").do(my_controller.get_posts)
+schedule.every().hour.at("56:00").do(my_controller.put_posts)
+schedule.every().hour.at("16:00").do(my_controller.follow)
+
+while True:
+    schedule.run_pending()
+
