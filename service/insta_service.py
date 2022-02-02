@@ -96,13 +96,17 @@ class InstaService:
             if len(image_list) == 0:
                 image_list = self.driver.find_elements(By.XPATH,'//li[@class="Ckrof"]//img[@class="FFVAD"]')
                 logging.info('instagram bulunan foto sayısı B tip : '+str(len(image_list)))
-                if len(image_list) == 0:
-                    image_list = self.driver.find_elements(By.XPATH,'//div[@class="_97aPb C2dOX  "]//img[@class="FFVAD"]')
-                    logging.info('instagram bulunan foto sayısı C tip : '+str(len(image_list)))
-                    if len(image_list) == 0:
-                        logging.info('instagram bu post video olabilir bulunan foto sayısı : '+str(len(image_list)))
-                        # TODO : Bu bir videodur
-            
+            if len(image_list) == 0:
+                image_list = self.driver.find_elements(By.XPATH,'//div[@class="_97aPb C2dOX  "]//img[@class="FFVAD"]')
+                logging.info('instagram bulunan foto sayısı C tip : '+str(len(image_list)))
+            if len(image_list) == 0:
+                image_list = self.driver.find_elements(By.XPATH,'//div[@class="eLAPa RzuR0"]//img[@class="FFVAD"]')
+                logging.info('instagram bulunan foto sayısı D tip : '+str(len(image_list)))
+            if len(image_list) == 0:
+                logging.info('instagram bu post video olabilir bulunan foto sayısı : '+str(len(image_list)))
+                break;
+                # TODO : Bu bir videodur
+        
             # Foto Url Kaydet
             for image in image_list:
                 photo_list.append(image.get_attribute('src'))
