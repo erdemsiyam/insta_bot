@@ -10,6 +10,8 @@ import time
 from datetime import datetime
 import logging
 import sys
+from selenium.common.exceptions import NoSuchElementException, InvalidSelectorException
+from selenium.common.exceptions import TimeoutException
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)
@@ -25,8 +27,8 @@ class InstaService:
     
     def __init__(self):
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-        self.driver.get('https://www.instagram.com/')
         self.driver.implicitly_wait(10)
+        self.driver.get('https://www.instagram.com/')
         logging.info('instagram açıldı')
 
     def login(self,username:str,password:str):
@@ -37,6 +39,12 @@ class InstaService:
         btn_login = WebDriverWait(self.driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,'button[type="submit"]')))
         btn_login.click()
         logging.info('instagram "'+username+'" ile giriş yapıldı')
+
+    def get_element_by_xpath(self,timeout: int,until_method: EC):
+        try:
+            return WebDriverWait(self.driver,timeout).until(until_method)
+        except:
+            return None
 
     def get_post_by_username(self,username:str,photo_index:int=1,comment_open=True) -> InstaPost:
         
@@ -50,38 +58,57 @@ class InstaService:
         logging.info('instagram "'+username+'" sayfasına girildi')
         
         # Post Açış
-        time.sleep(5)
-        first_image_small = self.driver.find_elements(By.CLASS_NAME, "_9AhH0")[photo_index-1]
+        # time.sleep(5)
+        # first_image_small = self.driver.find_elements(By.CLASS_NAME, "_9AhH0")[photo_index-1]
+        small_images = WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located((By.CLASS_NAME,"_9AhH0")))
+        first_image_small = small_images[photo_index-1]
         first_image_small.click()
         logging.info('instagram '+str(photo_index)+'. post açıldı')
         
         # Post Tarihi
         #upload_date = self.driver.find_element(By.XPATH,'/html/body/div[6]/div[2]/div/article/div/div[2]/div/div/div[2]/div[2]/a/time').get_attribute('datetime')
-        time.sleep(5)
-        upload_date = self.driver.find_element(By.XPATH,'//time[@class="_1o9PC Nzb55"]').get_attribute('datetime')
-        post.datetime_int = get_timespan(upload_date)
-        logging.info('instagram post tarihi '+str(post.datetime_int))
+        #time.sleep(5)
+        #upload_date = self.driver.find_element(By.XPATH,'//time[@class="_1o9PC Nzb55"]').get_attribute('datetime')
+        upload_date_element = self.get_element_by_xpath(5,EC.presence_of_element_located((By.XPATH,'//time[@class="_1o9PC Nzb55"]')))
+        if upload_date_element is None:
+            upload_date_element = self.get_element_by_xpath(5,EC.presence_of_element_located((By.XPATH,'//time[@class="_1o9PC"]')))
+        if upload_date_element is not None:
+            upload_date = upload_date_element.get_attribute('datetime')
+            post.datetime_int = get_timespan(upload_date)
+            logging.info('instagram post tarihi '+str(post.datetime_int))
+        else:
+            logging.info('instagram post tarihi bulunamadı')
 
         # Yorum Açık/Kapalı Kontrol
-        text_comment = self.driver.find_elements(By.XPATH,'//form[@class="X7cDz"]//textarea[@class="Ypffh"]')
-        if len(text_comment) > 0:
-            logging.info('instagram post yoruma açık')
-        else:
+        # text_comment = self.driver.find_elements(By.XPATH,'//form[@class="X7cDz"]//textarea[@class="Ypffh"]')
+        text_comment_element = self.get_element_by_xpath(5,EC.presence_of_all_elements_located((By.XPATH,'//form[@class="X7cDz"]//textarea[@class="Ypffh"]')))
+        if text_comment_element is None:
+            text_comment_element = self.get_element_by_xpath(5,EC.presence_of_all_elements_located((By.XPATH,'//form[@class="X7cDz"]//textarea[@class="PUqUI Ypffh"]')))
+        if text_comment_element is None:
             logging.info('instagram post yoruma kapalı')
             if comment_open:
+                logging.info('instagram post yoruma kapalı olduğu için bitirildi.')
                 return post
+        else:
+            logging.info('instagram post yoruma açık')
         
         # Başlık Alma
         #caption = driver.find_elements(By.XPATH,'//div[@class="C4VMK"]//span')[1].text
-        caption = self.driver.find_element(By.XPATH,'//div[@class="C4VMK"]/span').text
-        if caption == "Doğrulanmış":
-            caption = self.driver.find_elements(By.XPATH,'//div[@class="C4VMK"]//span')[2].text
-        post.caption = caption
-        logging.info('instagram post başlığı : '+post.caption)
-        
+        # caption = self.driver.find_element(By.XPATH,'//div[@class="C4VMK"]/span').text
+        caption_element = self.get_element_by_xpath(5,EC.presence_of_element_located((By.XPATH,'//div[@class="C4VMK"]//span[@class="_7UhW9   xLCgt      MMzan   KV-D4            se6yk       T0kll "]')))
+        if caption_element is not None:
+            caption = caption_element.text
+            post.caption = caption
+            logging.info('instagram post başlığı : '+post.caption)
+
         # Foto Sayısı Alma
-        time.sleep(10)
-        dots = self.driver.find_elements(By.XPATH,'//div[@class="JSZAJ   _3eoV-  IjCL9  WXPwG "]/div[@class="Yi5aA "]')
+        #time.sleep(10)
+        #dots = self.driver.find_elements(By.XPATH,'//div[@class="JSZAJ   _3eoV-  IjCL9  WXPwG "]/div[@class="Yi5aA "]')
+        dots = []
+        try:
+            dots = WebDriverWait(self.driver,5,ignored_exceptions=(TimeoutException,NoSuchElementException)).until(EC.presence_of_all_elements_located((By.XPATH,'//div[@class="JSZAJ   _3eoV-  IjCL9  WXPwG "]/div[@class="Yi5aA "]')))
+        except:
+            pass    
         dots = len(dots) + 1
         logging.info('instagram foto nokta sayısı '+str(dots))
         
@@ -91,16 +118,33 @@ class InstaService:
 
             # Sıradaki Fotoyu Bulma
             # alternatif class : "_97aPb C2dOX HCDIA " , "eLAPa kPFhm"
-            image_list = self.driver.find_elements(By.XPATH,'//div[@class="eLAPa kPFhm"]//img[@class="FFVAD"]')
+            # image_list = self.driver.find_elements(By.XPATH,'//div[@class="eLAPa kPFhm"]//img[@class="FFVAD"]')
+            image_list = []
+            try:
+                WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located((By.XPATH,'//div[@class="eLAPa kPFhm"]//img[@class="FFVAD"]')))
+            except:
+                pass
             logging.info('instagram bulunan foto sayısı A tip : '+str(len(image_list)))
             if len(image_list) == 0:
-                image_list = self.driver.find_elements(By.XPATH,'//li[@class="Ckrof"]//img[@class="FFVAD"]')
+                #image_list = self.driver.find_elements(By.XPATH,'//li[@class="Ckrof"]//img[@class="FFVAD"]')
+                try:
+                    image_list = WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located((By.XPATH,'//li[@class="Ckrof"]//img[@class="FFVAD"]')))
+                except:
+                    pass
                 logging.info('instagram bulunan foto sayısı B tip : '+str(len(image_list)))
             if len(image_list) == 0:
-                image_list = self.driver.find_elements(By.XPATH,'//div[@class="_97aPb C2dOX  "]//img[@class="FFVAD"]')
+                #image_list = self.driver.find_elements(By.XPATH,'//div[@class="_97aPb C2dOX  "]//img[@class="FFVAD"]')
+                try:
+                    image_list = WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located((By.XPATH,'//div[@class="_97aPb C2dOX  "]//img[@class="FFVAD"]')))
+                except:
+                    pass
                 logging.info('instagram bulunan foto sayısı C tip : '+str(len(image_list)))
             if len(image_list) == 0:
-                image_list = self.driver.find_elements(By.XPATH,'//div[@class="eLAPa RzuR0"]//img[@class="FFVAD"]')
+                #image_list = self.driver.find_elements(By.XPATH,'//div[@class="eLAPa RzuR0"]//img[@class="FFVAD"]')
+                try:
+                    image_list = WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located((By.XPATH,'//div[@class="eLAPa RzuR0"]//img[@class="FFVAD"]')))
+                except:
+                    pass
                 logging.info('instagram bulunan foto sayısı D tip : '+str(len(image_list)))
             if len(image_list) == 0:
                 logging.info('instagram bu post video olabilir bulunan foto sayısı : '+str(len(image_list)))
@@ -113,13 +157,13 @@ class InstaService:
             
             # Sırada Foto Varsa İlerle
             if dots + 1 - i > 1:
+                #btn_right_image = self.driver.find_elements(By.XPATH,"//div[@class='EcJQs']//button[@class='  _6CZji   ']")[0]
                 try:
-                    btn_right_image = self.driver.find_elements(By.XPATH,"//div[@class='EcJQs']//button[@class='  _6CZji   ']")[0]
+                    btn_right_image = WebDriverWait(self.driver,5).until(EC.presence_of_all_elements_located((By.XPATH,'//div[@class="EcJQs"]//button[@class="  _6CZji   "]')))[0]
+                    btn_right_image.click()
                 except:
-                    time.sleep(4)
-                    btn_right_image = self.driver.find_elements(By.XPATH,"//div[@class='EcJQs']//button[@class='  _6CZji   ']")[0]
-                btn_right_image.click()
-                time.sleep(4)
+                    logging.info('instagram Hata : postta ilerle butonu bulunamadı. dots: '+str(dots)+' , i : '+str(i))
+                #time.sleep(4)
         
         # Foto Urller None Olanlar Silinir
         photo_list_temp = photo_list.copy()
@@ -131,7 +175,7 @@ class InstaService:
         # Foto Urller Distinct yapılır
         post.urls = list(dict.fromkeys(photo_list))
         for idx,i in enumerate(post.urls):
-            logging.info('instagram foto '+str(idx)+'. url : '+str(i))
+            logging.info('instagram foto '+str(idx+1)+'. url : '+str(i))
         
         return post
 

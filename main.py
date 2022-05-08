@@ -9,6 +9,7 @@
 
 from controller.my_controller import MyController
 from util import *
+from user_info import *
 import logging
 import sys
 import schedule

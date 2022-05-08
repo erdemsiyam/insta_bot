@@ -1,0 +1,4 @@
+user_info.py
+.vscode/
+__pycache__/
+*/__py_cache__

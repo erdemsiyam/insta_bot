@@ -3,9 +3,6 @@ import os
 import wget
 import logging
 
-USERNAME = 'loudwhisper666'
-PASSWORD = 'lordkont81'
-
 def get_timespan(datetime_str:str) -> int:
     datetime_str = datetime_str.replace('T',' ').split('.')[0]
     datetime_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
